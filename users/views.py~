@@ -107,7 +107,7 @@ class UserInfoFromTokenAPI(APIView):
 
 
 class UpdateUserInfoAPI(APIView):
-    parser_classes = (JSONParser, )
+    parser_classes = (JSONParser, MultiPartParser, FormParser)
     permission_classes = [IsAuthenticated]
     serializer_class = UpdateUserSerializer
 

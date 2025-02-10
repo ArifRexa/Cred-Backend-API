@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import CreditCardViewSet
 
 router = DefaultRouter()
-router.register(r'cards', CreditCardViewSet, basename='creditcard')
+router.register(r'', CreditCardViewSet, basename='creditcard')
 
 urlpatterns = [
     path('', include(router.urls)),
