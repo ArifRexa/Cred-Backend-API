@@ -1,14 +1,13 @@
 import hashlib
-import time
 import random
 from datetime import datetime
 
 
 class CardNumberGenerator:
     BIN_RANGES = {
-        'VISA': '400000',  # 6-digit BIN
-        'MASTERCARD': '510000',  # 6-digit BIN
-        'AMEX': '340000'  # 6-digit BIN
+        'VISA': '400000',
+        'MASTERCARD': '510000',
+        'AMEX': '340000'
     }
 
     @staticmethod
@@ -27,14 +26,18 @@ class CardNumberGenerator:
         hash_object = hashlib.sha256(base.encode())
         hash_hex = hash_object.hexdigest()
 
-        # Convert hash to numbers only (take first 9 numeric characters)
-        numeric_hash = ''.join(c for c in hash_hex if c.isdigit())[:9]
+        # Convert hash to numbers only
+        numeric_hash = ''.join(c for c in hash_hex if c.isdigit())
 
-        # Combine BIN and numeric hash
-        partial_number = f"{bin_prefix}{numeric_hash}"
+        # Calculate required length for account number
+        total_length = 15 if card_type == 'AMEX' else 16
+        account_number_length = total_length - len(bin_prefix) - 1  # -1 for checksum
 
-        # Ensure the partial number is the correct length (15 digits for the partial number)
-        partial_number = partial_number[:15]
+        # Take required number of digits
+        account_number = numeric_hash[:account_number_length]
+
+        # Combine BIN and account number
+        partial_number = f"{bin_prefix}{account_number}"
 
         # Calculate and append check digit
         check_digit = CardNumberGenerator.calculate_luhn_checksum(partial_number)
@@ -56,9 +59,3 @@ class CardNumberGenerator:
         if not card_number.isdigit():
             return False
         return CardNumberGenerator.calculate_luhn_checksum(card_number[:-1]) == card_number[-1]
-
-    @staticmethod
-    def get_card_length(card_type):
-        if card_type == 'AMEX':
-            return 15
-        return 16  # VISA and MASTERCARD

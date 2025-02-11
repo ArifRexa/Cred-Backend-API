@@ -1,6 +1,4 @@
-# accounts/tokens.py
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.encoding import force_str
 
 
 class AccountActivationTokenGenerator(PasswordResetTokenGenerator):

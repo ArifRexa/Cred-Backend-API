@@ -6,15 +6,15 @@ from datetime import datetime
 
 class CardNumberGenerator:
     BIN_RANGES = {
-        'VISA': '4',
-        'MASTERCARD': '5',
-        'AMEX': '3'
+        'VISA': '400000',
+        'MASTERCARD': '510000',
+        'AMEX': '340000'
     }
 
     @staticmethod
     def generate_unique_number(card_type='VISA'):
         # Get BIN prefix based on card type
-        bin_prefix = CardNumberGenerator.BIN_RANGES.get(card_type, '4')
+        bin_prefix = CardNumberGenerator.BIN_RANGES.get(card_type, '400000')
 
         # Generate timestamp-based unique identifier
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S%f')
@@ -27,11 +27,20 @@ class CardNumberGenerator:
         hash_object = hashlib.sha256(base.encode())
         hash_hex = hash_object.hexdigest()
 
-        # Take first 9 digits of hash
-        account_number = hash_hex[:9]
+        # Convert hash to numbers only
+        numeric_hash = ''.join(c for c in hash_hex if c.isdigit())
 
-        # Combine BIN, account number, and generate check digit
+        # Calculate required length for account number
+        total_length = 15 if card_type == 'AMEX' else 16
+        account_number_length = total_length - len(bin_prefix) - 1  # -1 for checksum
+
+        # Take required number of digits
+        account_number = numeric_hash[:account_number_length]
+
+        # Combine BIN and account number
         partial_number = f"{bin_prefix}{account_number}"
+
+        # Calculate and append check digit
         check_digit = CardNumberGenerator.calculate_luhn_checksum(partial_number)
 
         return f"{partial_number}{check_digit}"
@@ -48,4 +57,6 @@ class CardNumberGenerator:
 
     @staticmethod
     def is_valid_card_number(card_number):
+        if not card_number.isdigit():
+            return False
         return CardNumberGenerator.calculate_luhn_checksum(card_number[:-1]) == card_number[-1]

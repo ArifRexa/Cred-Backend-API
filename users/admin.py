@@ -11,4 +11,3 @@ class CustomUserAdmin(admin.ModelAdmin):
     list_editable = ['role']
     search_fields = ['email', 'role']
     readonly_fields = ['date_joined', 'last_login']
-

@@ -38,8 +38,24 @@ class CreditCard(models.Model):
         return f"{self.user.email} - {self.card_number}"
 
     def clean(self):
-        if self.card_type == 'AMEX' and len(self.card_number) != 15:
-            raise ValidationError('American Express cards must be 15 digits')
-        elif self.card_type in ['VISA', 'MASTERCARD'] and len(self.card_number) != 16:
-            raise ValidationError('Visa and Mastercard must be 16 digits')
+        # Only validate card number length if it exists
+        if self.card_number:
+            if self.card_type == 'AMEX' and len(self.card_number) != 15:
+                raise ValidationError('American Express cards must be 15 digits')
+            elif self.card_type in ['VISA', 'MASTERCARD'] and len(self.card_number) != 16:
+                raise ValidationError('Visa and Mastercard must be 16 digits')
+
+            # Validate that card number contains only digits
+            if not self.card_number.isdigit():
+                raise ValidationError('Card number must contain only digits')
+
+    def save(self, *args, **kwargs):
+        if not self.pk:  # If this is a new card (not an update)
+            from .services import CardNumberGenerator
+            # Generate card number if it doesn't exist
+            if not self.card_number:
+                self.card_number = CardNumberGenerator.generate_unique_number(self.card_type)
+
+        self.clean()  # Run validation
+        super().save(*args, **kwargs)
 

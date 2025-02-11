@@ -1,4 +1,3 @@
-# from email._header_value_parser import get_token
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from django.utils import timezone
@@ -14,7 +13,6 @@ from users.models import CustomUser
 from users.tokens import account_activation_token
 from users.utils import set_otp
 
-# import requests
 
 User = get_user_model()
 
@@ -22,8 +20,11 @@ User = get_user_model()
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'email', 'first_name', 'last_name', 'password', 'role')
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = ('id', 'email', 'first_name', 'last_name', 'password')
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'role': {'read_only': True}  # Make role read-only for security
+        }
 
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
@@ -161,6 +162,13 @@ class ResendActivationEmailSerializer(serializers.Serializer):
                 'token': token,
             })
             send_mail(mail_subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+
+
+class UserListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'first_name', 'last_name', 'role')
+        read_only_fields = ('role',)  # Make role read-only
 
 
 class UserRoleUpdateSerializer(serializers.Serializer):
