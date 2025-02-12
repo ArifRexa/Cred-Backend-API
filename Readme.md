@@ -1,60 +1,59 @@
-# Credit Card Apply Backend API Documentation
+# Cred Backend API Documentation
+
 This document provides detailed instructions for setting up and using the Cred Backend API. The API allows users and employees to apply for credit cards, manage applications, and perform role-based operations.
 
 ## Table of Contents
-- Project Setup
+- [Project Setup](#project-setup)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Environment Variables](#environment-variables)
+  - [Database Setup](#database-setup)
+  - [Running the Server](#running-the-server)
+- [API Endpoints](#api-endpoints)
+  - [Authentication](#authentication)
+  - [User Management](#user-management)
+  - [Credit Card Management](#credit-card-management)
+- [Examples](#examples)
+  - [User Registration](#user-registration)
+  - [Credit Card Application](#credit-card-application)
+- [Error Handling](#error-handling)
+- [Testing](#testing)
+- [Support](#support)
 
-      1. Prerequisites
-      2. Installation
-      3. Environment Variables
-      4. Database Setup
-      5. Running the Server
-
-- API Endpoints
-
-      1. Authentication
-      2. User Management
-      3. Credit Card Management
-
-- Examples
-
-      1. User Registration
-      2. Credit Card Application
-
-- Error Handling
-
-- Testing
+---
 
 ## Project Setup
-**Prerequisites**
 
-    Python 3.8 or higher
-    pip (Python package manager)
-    SQLite (or any other database supported by Django)
-    Git (optional)
+### Prerequisites
+- Python 3.8 or higher  
+- pip (Python package manager)  
+- SQLite (or any other database supported by Django)  
+- Git (optional)  
 
-## Installation
-**Clone the repository:**
+### Installation
 
+#### Clone the repository:
 ```bash
-git clone https://github.com/your-repo/cred-backend.git
-cd cred-backend
+  git clone https://github.com/your-repo/cred-backend.git
+  cd cred-backend
 ```
-**Create a virtual environment:**
 
+#### Create a virtual environment:
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+  python -m venv venv
+  source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
-**Install dependencies:**
 
+#### Install dependencies:
 ```bash
-pip install -r requirements.txt
+  pip install -r requirements.txt
 ```
+
+---
 
 ## Environment Variables
-**Create a .env file in the root directory and add the following variables:**
 
+Create a `.env` file in the root directory and add the following variables:
 ```env
 SECRET_KEY=your-secret-key
 DEBUG=True
@@ -65,199 +64,139 @@ EMAIL_HOST_USER=your-email@gmail.com
 EMAIL_HOST_PASSWORD=your-email-password
 DEFAULT_FROM_EMAIL=your-email@gmail.com
 ```
+
+---
+
 ## Database Setup
 
-**Run migrations:**
-
+#### Run migrations:
 ```bash
-python manage.py migrate
+  python manage.py migrate
 ```
 
-**Create a superuser (Admin):**
-
+#### Create a superuser (Admin):
 ```bash
-python manage.py createsuperuser
+  python manage.py createsuperuser
 ```
+
+---
 
 ## Running the Server
-**Start the development server:**
 
-bash
-Copy
-python manage.py runserver
-The API will be available at http://127.0.0.1:8000/.
+#### Start the development server:
+```bash
+  python manage.py runserver
+```
+The API will be available at `http://127.0.0.1:8000/`.
 
-API Endpoints
-Authentication
-All endpoints (except registration and login) require JWT authentication. Include the token in the Authorization header:
+---
 
-http
-Copy
-Authorization: Bearer <access_token>
-User Management
-1. Register a New User
-URL: /api/register/
+## API Endpoints
 
-Method: POST
+### Authentication
 
-Request Body:
+| Endpoint                                        | Method | Description                       | Access        | Required Parameters            | Optional Parameters       | Response Example                                           |
+|-------------------------------------------------|--------|-----------------------------------|---------------|--------------------------------|---------------------------|------------------------------------------------------------|
+| `/api/register/`                                | `POST` | Register a new user               | Public        | `email`, `password`            | `first_name`, `last_name` | `{ "id": 1, "email": "user@example.com" }`                 |
+| `/api/login/`                                   | `POST` | Login and get JWT tokens          | Public        | `email`, `password`            | -                         | `{ "access": "access_token", "refresh": "refresh_token" }` |
+| `/api/token/refresh/`                           | `POST` | Refresh JWT tokens                | Authenticated | `refresh`                      | -                         | `{ "access": "new_access_token" }`                         |
+| `/api/verify-otp/`                              | `POST` | Verify OTP for email verification | Public        | `email`, `otp`                 | -                         | `{ "message": "OTP verified successfully" }`               |
+| `/api/resend-otp/`                              | `POST` | Resend OTP for email verification | Public        | `email`                        | -                         | `{ "message": "OTP resent successfully" }`                 |
+| `/api/password-reset/`                          | `POST` | Request password reset            | Public        | `email`                        | -                         | `{ "message": "Password reset email sent" }`               |
+| `/api/password-reset-confirm/<uidb64>/<token>/` | `POST` | Confirm password reset            | Public        | `password`, `password_confirm` | -                         | `{ "message": "Password reset successful" }`               |
 
-json
-Copy
-{
-  "email": "user@example.com",
-  "password": "securepassword123"
-}
-Response:
+---
 
-json
-Copy
-{
-  "id": 1,
-  "email": "user@example.com"
-}
-2. Login (Obtain JWT Tokens)
-URL: /api/login/
+### User Management
 
-Method: POST
+| Endpoint                                | Method  | Description                   | Access        | Required Parameters | Optional Parameters                          | Response Example                                    |
+|-----------------------------------------|---------|-------------------------------|---------------|---------------------|----------------------------------------------|-----------------------------------------------------|
+| `/api/user-info/`                       | `GET`   | Get current user info         | Authenticated | -                   | -                                            | `{ "id": 1, "email": "user@example.com" }`          |
+| `/api/user/update/`                     | `PATCH` | Update user profile           | Authenticated | -                   | `first_name`, `last_name`, `profile_picture` | `{ "message": "Profile updated successfully" }`     |
+| `/api/users/`                           | `GET`   | List all users (Admin only)   | Admin Only    | -                   | -                                            | `[ { "id": 1, "email": "user@example.com" }, ... ]` |
+| `/api/users/<int:pk>/`                  | `GET`   | Get user details (Admin only) | Admin Only    | -                   | -                                            | `{ "id": 1, "email": "user@example.com" }`          |
+| `/api/users/<int:user_id>/update-role/` | `PATCH` | Update user role (Admin only) | Admin Only    | `role`              | -                                            | `{ "message": "User role updated successfully" }`   |
 
-Request Body:
+---
 
-json
-Copy
-{
-  "email": "user@example.com",
-  "password": "securepassword123"
-}
-Response:
+### Credit Card Management
 
-json
-Copy
-{
-  "access": "access_token",
-  "refresh": "refresh_token"
-}
-3. Refresh JWT Token
-URL: /api/token/refresh/
+| Endpoint                     | Method   | Description                                    | Access                              | Required Parameters                   | Optional Parameters              | Response Example                                                                                                 |
+|------------------------------|----------|------------------------------------------------|-------------------------------------|---------------------------------------|----------------------------------|------------------------------------------------------------------------------------------------------------------|
+| `/cards/`                    | `GET`    | List all credit cards                          | Authenticated (Owner/Admin/Manager) | -                                     | -                                | `[ { "id": 1, "card_type": "VISA", "credit_limit": 5000, "status": "PENDING" }, ... ]`                           |
+| `/cards/`                    | `POST`   | Apply for a new credit card                    | Authenticated (Owner)               | `card_type`, `credit_limit`           | -                                | `{ "id": 1, "card_number": "4000001234567890", "card_type": "VISA", "credit_limit": 5000, "status": "PENDING" }` |
+| `/cards/{id}/`               | `GET`    | Get details of a specific credit card          | Authenticated (Owner/Admin/Manager) | -                                     | -                                | `{ "id": 1, "card_type": "VISA", "credit_limit": 5000, "status": "APPROVED" }`                                   |
+| `/cards/{id}/`               | `PUT`    | Update a credit card (Full update)             | Authenticated (Owner)               | `card_type`, `credit_limit`, `status` | -                                | `{ "message": "Card updated successfully" }`                                                                     |
+| `/cards/{id}/`               | `PATCH`  | Partially update a credit card                 | Authenticated (Owner)               | -                                     | Any field(s) that need updating  | `{ "message": "Card updated successfully" }`                                                                     |
+| `/cards/{id}/`               | `DELETE` | Delete a credit card (Admin only)              | Admin Only                          | -                                     | -                                | `{ "message": "Card deleted successfully" }`                                                                     |
+| `/cards/{id}/update-status/` | `POST`   | Update credit card status (Admin/Manager only) | Admin/Manager Only                  | `status`                              | `rejection_reason` (if rejected) | `{ "message": "Card successfully approved", "data": { "id": 1, "status": "APPROVED" } }`                         |
 
-Method: POST
+### Key Highlights:
+- **Access Levels**:
+  - `Public`: Anyone can access.
+  - `Authenticated`: Logged-in users.
+  - `Owner`: Users can access their own resources.
+  - `Admin/Manager Only`: Restricted to admins and managers.
 
-Request Body:
+- **Required vs Optional Parameters**:
+  - Mandatory fields are listed under **Required Parameters**.
+  - Additional fields that can be included are under **Optional Parameters**.
 
-json
-Copy
-{
-  "refresh": "refresh_token"
-}
-Response:
+- **Response Examples**:
+  - Each endpoint has an example response for better clarity.
 
-json
-Copy
-{
-  "access": "new_access_token"
-}
-Credit Card Management
-1. Submit a Credit Card Application
-URL: /api/cards/
 
-Method: POST
+---
+## Examples
 
-Request Body:
+### User Registration
+```bash
+  curl -X POST http://127.0.0.1:8000/api/register/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "securepassword123"
+  }'
+```
 
-json
-Copy
-{
-  "card_type": "VISA",
-  "credit_limit": 5000
-}
-Response:
-
-json
-Copy
-{
-  "id": 1,
-  "card_number": "4000001234567890",
-  "card_type": "VISA",
-  "credit_limit": 5000,
-  "status": "PENDING"
-}
-2. Retrieve Credit Card Details
-URL: /api/cards/<int:pk>/
-
-Method: GET
-
-Response:
-
-json
-Copy
-{
-  "id": 1,
-  "card_number": "4000001234567890",
-  "card_type": "VISA",
-  "credit_limit": 5000,
-  "status": "APPROVED",
-  "user_email": "user@example.com",
-  "approved_by_email": "admin@example.com"
-}
-3. Update Credit Card Status (Admin/Manager Only)
-URL: /api/cards/<int:pk>/update-status/
-
-Method: POST
-
-Request Body:
-
-json
-Copy
-{
-  "status": "APPROVED"
-}
-Response:
-
-json
-Copy
-{
-  "message": "Card successfully approved",
-  "data": {
-    "id": 1,
-    "card_number": "4000001234567890",
+### Credit Card Application
+```bash
+  curl -X POST http://127.0.0.1:8000/api/cards/ \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
     "card_type": "VISA",
-    "credit_limit": 5000,
-    "status": "APPROVED"
-  }
-}
-Examples
-User Registration
-bash
-Copy
-curl -X POST http://127.0.0.1:8000/api/register/ \
--H "Content-Type: application/json" \
--d '{
-  "email": "user@example.com",
-  "password": "securepassword123"
-}'
-Credit Card Application
-bash
-Copy
-curl -X POST http://127.0.0.1:8000/api/cards/ \
--H "Authorization: Bearer <access_token>" \
--H "Content-Type: application/json" \
--d '{
-  "card_type": "VISA",
-  "credit_limit": 5000
-}'
-Error Handling
-400 Bad Request: Invalid input data.
+    "credit_limit": 5000
+  }'
+```
 
-401 Unauthorized: Missing or invalid JWT token.
+---
 
-403 Forbidden: Insufficient permissions.
+## Error Handling
 
-404 Not Found: Resource not found.
+- `400 Bad Request`: Invalid input data.
+- `401 Unauthorized`: Missing or invalid JWT token.
+- `403 Forbidden`: Insufficient permissions.
+- `404 Not Found`: Resource not found.
 
-Example Error Response:
-
-json
-Copy
+**Example Error Response:**
+```json
 {
   "error": "Invalid OTP."
 }
+```
+
+---
+
+## Testing
+
+#### Run the test suite:
+
+```bash
+  python manage.py test
+```
+
+---
+
+## Support
+For any issues or questions, please contact `arif.reza3126@gmail.com`.
