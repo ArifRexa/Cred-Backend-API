@@ -1,0 +1,56 @@
+# cards/tests/test_views.py
+
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase
+from users.models import CustomUser
+from cards.models import CreditCard
+
+class CreditCardApplicationTestCase(APITestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(
+            email='testuser@example.com',
+            password='securepassword123'
+        )
+        self.client.force_authenticate(user=self.user)
+
+    def test_credit_card_application(self):
+        """
+        Ensure we can apply for a new credit card.
+        """
+        url = reverse('card-list-create')
+        data = {
+            'card_type': 'VISA',
+            'credit_limit': 5000
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(CreditCard.objects.count(), 1)
+        self.assertEqual(CreditCard.objects.get().card_type, 'VISA')
+
+class CreditCardStatusUpdateTestCase(APITestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(
+            email='testuser@example.com',
+            password='securepassword123',
+            role='ADMIN'
+        )
+        self.card = CreditCard.objects.create(
+            user=self.user,
+            card_type='VISA',
+            credit_limit=5000,
+            status='PENDING'
+        )
+        self.client.force_authenticate(user=self.user)
+
+    def test_credit_card_status_update(self):
+        """
+        Ensure we can update the status of a credit card.
+        """
+        url = reverse('card-status-update', kwargs={'pk': self.card.pk})
+        data = {
+            'status': 'APPROVED'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(CreditCard.objects.get().status, 'APPROVED')
