@@ -34,7 +34,7 @@ This document provides detailed instructions for setting up and using the Cred B
 #### Clone the repository:
 ```bash
   git clone https://github.com/ArifRexa/Cred-Backend-API.git
-  cd Cred-Backend-API
+  cd cred-backend
 ```
 
 #### Create a virtual environment:
@@ -131,7 +131,7 @@ default_from_email=checkmed202@gmail.com
 ```bash
   python manage.py runserver
 ```
-The API will be available at `http://127.0.0.1:8000/`. and the admin panel at `http://127.0.0.1:8000/admin/`.
+The API will be available at `http://127.0.0.1:8000/`.
 
 ---
 
