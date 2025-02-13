@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 import requests
@@ -14,6 +14,8 @@ from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, Bl
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from django.shortcuts import get_object_or_404
+
+from cards.permissions import IsAdminOrManager
 from users.tokens import account_activation_token
 from .models import CustomUser
 from .serializers import CustomUserSerializer, ResendActivationEmailSerializer, \
@@ -64,7 +66,22 @@ class UserInfoFromTokenAPI(APIView):
     serializer_class = AuthSerializer
 
     @extend_schema(
-        tags=['Profile']
+        tags=['Profile'],
+        summary = "Get authenticated user's profile",
+        description = "Fetches the currently authenticated user's profile details from the access token.",
+        responses = {
+            200: OpenApiResponse(
+                response=AuthSerializer,
+                description="Successfully retrieved user information."
+            ),
+            401: OpenApiResponse(
+                description="Unauthorized - Invalid or expired token."
+            ),
+            500: OpenApiResponse(
+                description="Internal server error."
+            )
+        }
+
     )
     def get(self, request):
         # If authenticated, get the user from the request
@@ -87,6 +104,7 @@ class UpdateUserInfoAPI(APIView):
 
     @extend_schema(
         tags=['Profile'],
+        summary='Update User Profile',
         description='Update user profile information. All fields are optional.',
         responses={
             200: UpdateUserSerializer,
@@ -130,6 +148,7 @@ class UpdateUserRoleView(APIView):
 
     @extend_schema(
         tags=['User Management'],
+        summary='Update User Role',
         description='Update user role - Admin only endpoint',
         request=UserRoleUpdateSerializer,
         responses={
@@ -172,25 +191,49 @@ class UpdateUserRoleView(APIView):
 
 
 class UserList(generics.ListAPIView):
-    permission_classes = (IsAdminUser,)
+    permission_classes = (IsAdminOrManager, )
     queryset = User.objects.all().order_by('pk')
     serializer_class = UserListSerializer
     page_size = 1
 
     @extend_schema(
-        tags=['Profile']
+        tags=['Profile'],
+        summary = 'List of all users',
+        description='Get a list of all users. Admin/Manager only.',
+        responses = {
+            200: UserListSerializer(many=True),
+            401: OpenApiResponse(description='Authentication credentials were not provided'),
+            403: OpenApiResponse(description='Permission denied - Not an Admin or Manager'),
+        },
+        examples=[
+            OpenApiExample(
+                'User List',
+                summary='List of all users',
+                value={},
+                request_only=True,
+            ),
+        ]
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
 
 class UserDetail(generics.RetrieveAPIView):
-    permission_classes = (IsAdminUser,)
+    permission_classes = (IsAdminOrManager, )
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
 
     @extend_schema(
-        tags=['Profile']
+        tags=['Profile'],
+        summary='Get user details by ID',
+        description='Get details of a specific user by ID. Admin/Manager.',
+        responses={
+            200: CustomUserSerializer,
+            401: OpenApiResponse(description='Authentication credentials were not provided'),
+            403: OpenApiResponse(description='Permission denied - Not an Admin'),
+            404: OpenApiResponse(description='User not found'),
+        }
+
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)

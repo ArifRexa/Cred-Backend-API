@@ -76,7 +76,14 @@ SIMPLE_JWT = {
 # DRF Spectacular configuration
 SPECTACULAR_SETTINGS = {
     "TITLE": "Cred Backend API",
-    "DESCRIPTION": "This is the backend API for Cred.",
+    "DESCRIPTION": """
+## 🔑 Authentication
+1. Register and Verify OTP.
+2. Login with credentials to obtain JWT tokens.
+3. Use JWT Access Token in the Authorization header for all protected API calls.
+
+All endpoints require authentication using **JWT tokens**.  
+Include your token in the `Authorization` header:""",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
