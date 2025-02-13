@@ -49,7 +49,6 @@ INSTALLED_APPS = [
 
     'users',
     'cards',
-    'applications',
 ]
 # REST framework configuration
 REST_FRAMEWORK = {
@@ -75,7 +74,7 @@ SIMPLE_JWT = {
 
 # DRF Spectacular configuration
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Cred Backend API",
+    "TITLE": "Credit Card Backend API",
     "DESCRIPTION": """
 ## 🔑 Authentication
 1. Register and Verify OTP.

@@ -2,6 +2,9 @@ from django.contrib import admin
 
 from users.models import CustomUser
 
+admin.site.site_header = "Credit Card Admin"
+admin.site.site_title = "Credit Card Admin"
+admin.site.index_title = "Welcome to Credit Card Admin"
 
 # Register your models here.
 @admin.register(CustomUser)
